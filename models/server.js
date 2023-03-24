@@ -1,6 +1,7 @@
 
 const express = require('express');
 const cors = require('cors');
+const { dbConnection } = require('../database/config');
 
 
 class Server {
@@ -10,20 +11,34 @@ class Server {
         this.port = process.env.PORT,
         this.usuariosPath = '/api/usuarios';
 
+    /*****************************************************************************/  
+        //?Conectar a base de datos
+    /*****************************************************************************/  
 
+        this.conectarDB();
+    /*****************************************************************************/  
         //?MIDDLEWARE
+    /*****************************************************************************/  
+
         this.middlewares();
 
+    /*****************************************************************************/  
+    //?RUTAS DE MI APLICACIÓN
+    /*****************************************************************************/  
 
-        //?RUTAS DE MI APLICACIÓN
-
-        
         this.routes();
     
+        
+    /*****************************************************************************/          
+        //?MÉTODOS
+    /*****************************************************************************/  
+
     }
-    
-    //?MÉTODOS
-    
+    //método conexión de base de datos
+    async conectarDB(){
+        await dbConnection();
+    }
+        
     
     middlewares(){
 
@@ -36,8 +51,10 @@ class Server {
         //Directorio publico 
         this.app.use( express.static('public') )
     }
-    
+    /*****************************************************************************/  
     //?ENDPOiNTS
+    /*****************************************************************************/  
+
     routes(){
         this.app.use(this.usuariosPath,require('../routes/usuarios'))
 
