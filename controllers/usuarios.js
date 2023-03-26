@@ -78,12 +78,10 @@ const usurariosDelete = async(req, res = response) =>{
 
     const { id } = req.params;
 
-    //físicamente lo borramos
-    // const usuario = await Usuario.findByIdAndDelete(id); no es bueno borrar al usuario de la base de datos
-
     const usuario = await Usuario.findByIdAndUpdate(id,{estado: false});
+    const usuarioAutenticado = req.usuario;
 
-    res.json({usuario});
+    res.json(usuario);
 }
 
 
