@@ -32,10 +32,10 @@ if(!existeUsuario){
 
 const existeCategoriaPorId = async( id )=>{
     //verificar si el correo existe
-const existeCategoria = await Categoria.findById(id);
-if(!existeCategoria){
-    throw new Error(`El id no existe: ${ id }`);
-}
+    const existeCategoria = await Categoria.findById(id);
+    if(!existeCategoria){
+        throw new Error(`El id no existe: ${ id }`);
+    }
 }
 
 /**
@@ -45,10 +45,26 @@ if(!existeCategoria){
 
 const existeProductoPorId = async( id )=>{
     //verificar si el correo existe
-const existeProducto = await Producto.findById(id);
-if(!existeProducto){
-    throw new Error(`El id no existe: ${ id }`);
+    const existeProducto = await Producto.findById(id);
+    if(!existeProducto){
+        throw new Error(`El id no existe: ${ id }`);
+    }
 }
+
+/**
+ *  Validar colecciones permitidas
+ */
+
+const coleccionesPermitidas = ( coleccion = '', colecciones = [] ) => {
+
+    const incluida = colecciones.includes( coleccion );
+    if( !incluida ){
+        throw new Error(`La coleccion ${ coleccion } no es permitida ${ colecciones } `);
+    }
+
+    return true;
+
+
 }
 
 
@@ -58,7 +74,8 @@ module.exports = {
     emailExiste,
     existeUsuarioPorId,
     existeCategoriaPorId,
-    existeProductoPorId
+    existeProductoPorId,
+    coleccionesPermitidas
 }
 
 

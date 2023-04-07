@@ -1,51 +1,88 @@
-const path = require('path')
-const { v4: uuidv4 } = require('uuid');
-
+const path = require('path');
+const fs = require('fs');
 
 const { response } = require("express");
+const { subirArchivo } = require("../helpers");
 
-const cargarArchivos =(req, res =response)=>{
+const { Usuario, Producto } = require('../models'); 
 
-
-
-    if (!req.files || Object.keys(req.files).length === 0 || !req.files.archivo) {
-        res.status(400).json('No hay archivos que subir');
-        return;
-    }
+const cargarArchivos =  async(req, res =response)=>{
 
 
-    const {archivo } = req.files;
-    const nombreCortado = archivo.name.split('.');
-    //extension del archivo(png,txt,etc)
-    const extension = nombreCortado[nombreCortado.length - 1];
-
-    // validar la extension
-    const extenionesValidas = ['png','jpg','jpeg','gif'];
-    if( !extenionesValidas.includes( extension ) ){
-        return res.status(400).json({
-            msg: `La extensión ${ extension } no es permitida, extensiones permitidas: ${ extenionesValidas}`
+    try{
+        // imágenes //txt,mk
+        // const nombre = await subirArchivo( req.files,[ 'txt','md' ], 'carpetaTextos' );
+        const nombre = await subirArchivo( req.files, undefined, 'imgs');
+        res.json({
+            //nombre: nombre (const) 
+            nombre
         })
+
+    }catch(msg){
+        res.status(400).json({ msg });
     }
 
 
 
+}
 
-    const nombreTemp = uuidv4() + '.' + extension;
-    const uploadPath = path.join(__dirname,  '../uploads/', nombreTemp);
+const actualizarImagen = async(req, res = response) =>{
 
-    archivo.mv(uploadPath,(err)=> {
-        if (err) {
-            return res.status(500).json({ err });
+
+    const { id, coleccion } = req.params;
+
+    let modelo;
+
+    switch( coleccion ){
+        case 'usuarios':
+        modelo = await Usuario.findById(id);
+        if( !modelo ){
+            return res.status(400).json({
+                msg:`No existe un usuario con el id ${id}`
+            });
+        }
+
+        break;
+        case 'productos':
+            modelo = await Producto.findById(id);
+            if( !modelo ){
+                return res.status(400).json({
+                    msg:`No existe un producto con el id ${id}`
+                });
+            }
+            
+            break;
+
+        default:
+            return res.status(500).json({msg: 'Se me olvido validar esto'});
     }
 
-    res.json({msg: 'File uploaded to ' + uploadPath});
-    });
+
+    // limpiar imágenes previas
+    if( modelo.img ){
+        // hay que borrar la imagen del servidor
+        const pathImagen = path.join( __dirname, '../uploads', coleccion, modelo.img );
+        if( fs.existsSync( pathImagen ) ){
+            fs.unlinkSync(pathImagen );
+        }
+    }
+
+    const nombre = await subirArchivo( req.files, undefined, coleccion);
+    modelo.img =  nombre;
+
+    await modelo.save();
+
+
+    res.json( modelo );
+
 
 }
 
 
 
+
 module.exports = {
 
-    cargarArchivos
+    cargarArchivos,
+    actualizarImagen
 }
